@@ -48,11 +48,12 @@ jobs:
 
           echo "latest upstream version: $VERSION"
 
-          if [ "$(cat VERSION)" = "$VERSION" ]; then
-            echo "version matches: $VERSION"
+          if grep -qF "$VERSION" VERSIONS; then
+            echo "version exists: $VERSION"
           else
-            echo "updating version: $VERSION"
-            echo "$VERSION" >VERSION
+            echo "adding version: $VERSION"
+            echo "$VERSION" >>VERSIONS
+            sort --version-sort --reverse --output=VERSIONS VERSIONS
             git add VERSION
             git commit -m "Add $VERSION from upstream"
             git push

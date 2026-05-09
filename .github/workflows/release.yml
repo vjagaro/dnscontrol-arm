@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+
+  release:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Checkout dnscontrol
+        uses: actions/checkout@v6
+        with:
+          repository: DNSControl/dnscontrol
+          ref: ${{ github.ref_name }}
+          path: dnscontrol
+
+      - name: Update dnscontrol
+        run: |
+          rm -rf dnscontrol/.git
+          cp -f dnscontrol-goreleaser.yml dnscontrol/.goreleaser.yml
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      # Stringer is needed because .goreleaser includes "go generate ./..."
+      - name: Install stringer
+        run: |
+          go install golang.org/x/tools/cmd/stringer@latest
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release
+          workdir: dnscontrol
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

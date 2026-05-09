@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+project_name: dnscontrol
+version: 2
+builds:
+  -
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - arm
+    goos:
+      - linux
+    ldflags:
+      - -linkmode=internal -s -w
+      - -X github.com/DNSControl/dnscontrol/v4/pkg/version.version={{ .Version }}
+
+before:
+  hooks:
+    - go fmt ./...
+    - go mod tidy
+    - go generate ./...
+
+changelog:
+  disable: true
+
+nfpms:
+  - id: packages_rpm
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
+    homepage:  https://docs.dnscontrol.org/
+    description: "DNSControl: Infrastructure as Code for DNS Zones"
+    maintainer: "Tom Limoncelli <tal@whatexit.org>"
+    license: MIT
+    formats:
+    - rpm
+  - id: packages_deb
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
+    homepage: https://docs.dnscontrol.org/
+    description: "DNSControl: Infrastructure as Code for DNS Zones"
+    maintainer: "Tom Limoncelli <tal@whatexit.org>"
+    license: MIT
+    formats:
+    - deb
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  mode: replace
+  header: |
+    ARM build of DNSControl v{{ .Version }}
+
+    https://github.com/DNSControl/dnscontrol/releases/tag/v{{ .Version }}

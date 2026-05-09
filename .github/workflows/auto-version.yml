@@ -1,0 +1,67 @@
+name: Auto-version
+
+on:
+
+  schedule:
+    - cron: "22 * * * *" # Every hour
+
+  workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        type: string
+
+jobs:
+
+  auto-version:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+
+      - name: Update version
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          VERSION="${{ github.event.inputs.version }}"
+
+          if [ -z "$VERSION" ]; then
+            VERSION="$(
+              curl -sSL https://api.github.com/repos/DNSControl/dnscontrol/releases/latest \
+                | jq -r ".tag_name // empty"
+            )"
+          fi
+
+          VERSION="$(echo "$VERSION" | sed "s/[^-_.+~0-9a-zA-Z]//g")"
+
+          if [ -z "$VERSION" ]; then
+            echo "latest upstream version: not found" >&2
+            exit 0
+          fi
+
+          echo "latest upstream version: $VERSION"
+
+          if [ "$(cat VERSION)" = "$VERSION" ]; then
+            echo "version matches: $VERSION"
+          else
+            echo "updating version: $VERSION"
+            echo "$VERSION" >VERSION
+            git add VERSION
+            git commit -m "Add $VERSION from upstream"
+            git push
+          fi
+
+          if git tag -l "$VERSION" | grep -q "$VERSION"; then
+            echo "tag exists: $VERSION"
+          else
+            echo "adding tag: $VERSION"
+            git tag -a -m "Add $VERSION from upstream" "$VERSION"
+            git push --tags
+          fi

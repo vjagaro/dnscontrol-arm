@@ -3,7 +3,7 @@ name: Auto-version
 on:
 
   schedule:
-    - cron: "22 * * * *" # Every hour
+    - cron: "22 18 * * *" # Once a day at 18:22:00 UTC
 
   workflow_dispatch:
     inputs:

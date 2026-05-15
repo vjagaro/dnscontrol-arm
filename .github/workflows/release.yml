@@ -32,6 +32,7 @@ jobs:
         run: |
           rm -rf dnscontrol/.git
           cp -f dnscontrol-goreleaser.yml dnscontrol/.goreleaser.yml
+          cp -f dnscontrol-build-generate-goreleaserFile.go dnscontrol/build/generate/goreleaserFile.go
 
       - name: Set up Go
         uses: actions/setup-go@v6

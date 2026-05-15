@@ -54,7 +54,7 @@ jobs:
             echo "adding version: $VERSION"
             echo "$VERSION" >>VERSIONS
             sort --version-sort --reverse --output=VERSIONS VERSIONS
-            git add VERSION
+            git add VERSIONS
             git commit -m "Add $VERSION from upstream"
             git push
           fi
